@@ -1,0 +1,11 @@
+# openenv.yaml
+name: "datapipe-sandbox-v1"
+version: "1.0.0"
+description: "A real-world data engineering environment where agents construct, debug, and optimize ETL pipelines using DuckDB and Python."
+task_types: ["data-engineering", "optimization", "coding"]
+tags: ["python", "duckdb", "pandas", "etl"]
+entrypoint: "app:app"
+# Hardware requirements for HF Spaces
+hardware:
+  cpu: 2
+  memory: 8
