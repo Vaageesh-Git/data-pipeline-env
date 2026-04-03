@@ -1,0 +1,42 @@
+# --- SENSITIVE DATA (CRITICAL) ---
+.env
+*.env
+# If you accidentally named it something else:
+secrets.json
+keys.txt
+
+# --- PYTHON JUNK ---
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.venv/
+venv/
+ENV/
+build/
+dist/
+
+# --- LOCAL WORKSPACE & TEMP FILES ---
+# This prevents the temporary folders created by env.py from being pushed
+task_*_*/
+tmp/
+temp/
+workspace/
+
+# --- DATA & DATABASE FILES ---
+# Prevents local test databases and output CSVs from cluttering git
+*.db
+*.duckdb
+*.sqlite
+output.csv
+# Only exclude the actual data files if you aren't using them as seeds
+# If your task seeds are in a specific folder, don't ignore that folder.
+
+# --- OS SPECIFIC ---
+.DS_Store
+Thumbs.db
+
+# --- OPENENV SPECIFIC ---
+# If the validator generates local logs or reports
+.openenv/
+validation_report.json
