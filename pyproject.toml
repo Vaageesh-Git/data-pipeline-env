@@ -1,0 +1,22 @@
+[project]
+name = "data-pipeline-env"
+version = "0.1.0"
+description = "Data pipeline RL environment for OpenEnv"
+authors = [
+    { name = "Vaageesh Kumar Singh" }
+]
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "pandas",
+    "duckdb",
+    "openai",
+    "httpx",
+    "python-dotenv",
+    "pydantic",
+    "numpy",
+    "faker"
+]
+
+[tool.openenv]
+entrypoint = "app:app"
