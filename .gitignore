@@ -40,3 +40,4 @@ Thumbs.db
 # If the validator generates local logs or reports
 .openenv/
 validation_report.json
+validate-submission.sh
