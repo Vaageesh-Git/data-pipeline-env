@@ -89,7 +89,7 @@ class DataPipelineEnv:
                 capture_output=True,
                 text=True,
                 timeout=15,  # Prevent infinite loops
-                env={},  # 🔥 Sandbox: removes all environment variables
+                env={},  #. Sandbox: removes all environment variables
             )
 
             exec_duration = time.time() - start_exec
