@@ -10,6 +10,10 @@ def calculate_correctness(output_df, target_config):
     if output_df is None or output_df.empty:
         return 0.0, "Output is missing or empty."
 
+    # Anti-hardcoding check
+    if len(output_df) < 2:
+        return 0.0, "Output too small → possible hardcoding"
+
     # 1. Schema Score
     expected_cols = target_config["columns"]
     agent_cols = list(output_df.columns)
@@ -26,9 +30,8 @@ def calculate_correctness(output_df, target_config):
 
     # 3. Value Score (Checksum)
     target_col = target_config["checksum_col"]
-# 3. Value Score (Checksum)
-    target_col = target_config["checksum_col"]
     expected_sum = target_config["checksum_val"]
+    agent_series = None
 
     try:
         agent_series = pd.to_numeric(output_df[target_col], errors='coerce').fillna(0)
@@ -39,15 +42,28 @@ def calculate_correctness(output_df, target_config):
 
     # --- NEW: Distribution Validation ---
     try:
+        if agent_series is None:
+            raise Exception("No valid series")
+
         expected_rows = target_config["row_count"]
         expected_mean = expected_sum / expected_rows
 
         actual_mean = agent_series.mean()
+        std_actual = agent_series.std()
+        std_expected = expected_mean  # rough proxy
 
-        dist_score = max(
+        mean_score = max(
             0.0,
             1.0 - abs(actual_mean - expected_mean) / (expected_mean + 1e-9)
         )
+
+        std_score = max(
+            0.0,
+            1.0 - abs(std_actual - std_expected) / (std_expected + 1e-9)
+        )
+
+        dist_score = 0.5 * mean_score + 0.5 * std_score
+
     except:
         dist_score = 0.0
 
@@ -59,10 +75,10 @@ def calculate_correctness(output_df, target_config):
         0.15 * dist_score
     )
     
-    feedback = f"Schema: {c_schema:.2f}, Volume: {c_volume:.2f}, Value Match: {c_value:.2f}."
+    feedback = f"Schema: {c_schema:.2f}, Volume: {c_volume:.2f}, Value: {c_value:.2f}, Dist: {dist_score:.2f}"
     return c_total, feedback
 
-def evaluate_pipeline(workspace_path, logs, task_config):
+def evaluate_pipeline(workspace_path, logs, exec_time, task_config):
     """The Master Grader."""
     metrics = {"correctness": 0.0, "efficiency": 0.0, "robustness": 0.0}
     feedback_signals = []
@@ -70,8 +86,7 @@ def evaluate_pipeline(workspace_path, logs, task_config):
     # --- 1. EFFICIENCY (E) ---
     try:
         # Extract time from env.py logs
-        time_str = logs.split("Execution Time: ")[1].split("s")[0]
-        t_agent = float(time_str)
+        t_agent = exec_time
         t_ref = task_config["ref_time"]
         
         if t_agent <= t_ref:
@@ -118,7 +133,10 @@ def evaluate_pipeline(workspace_path, logs, task_config):
                     shadow_run = subprocess.run(
                         ["python3", "pipeline.py"],
                         cwd=workspace_path,
-                        capture_output=True, text=True, timeout=15
+                        capture_output=True,
+                        text=True,
+                        timeout=15,
+                        env={}
                     )
 
                     if shadow_run.returncode == 0:
@@ -190,7 +208,7 @@ TASKS = [
             "checksum_col": "amount",
             "checksum_val": 300.0 
         },
-        "grader": lambda ws, logs: evaluate_pipeline(ws, logs, TASKS[0])
+        "grader": lambda ws, logs, exec_time: evaluate_pipeline(ws, logs, exec_time, TASKS[0])
     },
 
     # ---------------------------------------------------------
@@ -222,7 +240,7 @@ TASKS = [
             "checksum_col": "total_spent",
             "checksum_val": 175.0 # 200 (Alice) - 25 (Bob). The NaN is dropped.
         },
-        "grader": lambda ws, logs: evaluate_pipeline(ws, logs, TASKS[1])
+        "grader": lambda ws, logs, exec_time: evaluate_pipeline(ws, logs, exec_time, TASKS[1])
     },
 
     # ---------------------------------------------------------
@@ -254,6 +272,6 @@ TASKS = [
             "checksum_col": "revenue",
             "checksum_val": 600.0 # 300 (Q1) + 300 (Valid Q2 row)
         },
-        "grader": lambda ws, logs: evaluate_pipeline(ws, logs, TASKS[2])
+        "grader": lambda ws, logs, exec_time: evaluate_pipeline(ws, logs, exec_time, TASKS[2])
     }
 ]

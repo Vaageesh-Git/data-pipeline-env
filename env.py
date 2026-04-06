@@ -7,7 +7,7 @@ import tempfile
 import pandas as pd
 from typing import Tuple
 from models import Action, Observation, State
-from tasks import TASKS
+from tasks import TASKS, calculate_correctness
 
 class DataPipelineEnv:
     def __init__(self):
@@ -19,6 +19,7 @@ class DataPipelineEnv:
         self.done = False
         # Placeholders for the metrics we will define later
         self.last_metrics = {"correctness": 0.0, "efficiency": 0.0, "robustness": 0.0}
+        self.last_exec_time = 0.0
 
     def reset(self, task_id: int = 0) -> Observation:
         """Initializes a new task session and sets up the file system."""
@@ -57,6 +58,8 @@ class DataPipelineEnv:
             self.done = True
 
         obs = self._get_obs()
+        if action.command != "submit":
+            reward -= 0.01 * self.step_count
         return obs, reward, self.done, {}
 
     def _handle_read(self, path: str):
@@ -85,10 +88,12 @@ class DataPipelineEnv:
                 cwd=self.workspace,
                 capture_output=True,
                 text=True,
-                timeout=15
+                timeout=15,  # Prevent infinite loops
+                env={},  # 🔥 Sandbox: removes all environment variables
             )
 
             exec_duration = time.time() - start_exec
+            self.last_exec_time = exec_duration
 
             self.logs = f"STDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}\nExecution Time: {exec_duration:.4f}s"
 
@@ -111,14 +116,25 @@ class DataPipelineEnv:
                 efficiency = max(0.0, 1.0 - (exec_duration - t_ref) / (4 * t_ref))
 
             # Update metrics LIVE
+            robustness = 0.5 if result.returncode == 0 else 0.0
+
+            output_path = os.path.join(self.workspace, "output.csv")
+            if os.path.exists(output_path):
+                robustness += 0.5
+
+            # Update metrics LIVE
             self.last_metrics = {
                 "correctness": correctness,
                 "efficiency": efficiency,
-                "robustness": self.last_metrics.get("robustness", 0.0)
+                "robustness": robustness
             }
 
-            # --- NEW REWARD ---
-            reward = (0.6 * correctness) + (0.4 * efficiency)
+            # Improved reward (aligned with final scoring)
+            reward = (
+                0.5 * correctness +
+                0.3 * efficiency +
+                0.2 * robustness
+            )
 
             return reward if result.returncode == 0 else reward - 0.3
 
@@ -131,9 +147,10 @@ class DataPipelineEnv:
         """Final grading using the task's grader."""
         task = TASKS[self.current_task_id]
         # We pass self.logs and workspace for the grader to inspect
-        result = task["grader"](self.workspace, self.logs)
+        result = task["grader"](self.workspace, self.logs, self.last_exec_time)
         self.last_metrics = result["metrics"]
-        return result["score"]
+        bonus = max(0, 0.2 - 0.01 * self.step_count)
+        return result["score"] + bonus
 
     def _get_obs(self) -> Observation:
         """Helper to construct the observation from the current state."""
