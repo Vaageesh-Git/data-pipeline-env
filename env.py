@@ -76,31 +76,56 @@ class DataPipelineEnv:
         except Exception as e:
             self.logs = f"Error writing to {path}: {str(e)}"
 
+
     def _handle_run(self) -> float:
-        """Executes the pipeline and measures time (efficiency)."""
         start_exec = time.time()
         try:
-            # We run as a subprocess to isolate errors
             result = subprocess.run(
                 ["python3", "pipeline.py"],
                 cwd=self.workspace,
                 capture_output=True,
                 text=True,
-                timeout=15 # Prevent infinite loops
+                timeout=15
             )
+
             exec_duration = time.time() - start_exec
+
             self.logs = f"STDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}\nExecution Time: {exec_duration:.4f}s"
-            
-            # Here we will later insert logic to update 'self.last_metrics'
-            # based on the run result for iterative feedback.
-            return 0.1 if result.returncode == 0 else -0.1
-            
+
+            # --- NEW: PARTIAL EVALUATION ---
+            task = TASKS[self.current_task_id]
+
+            try:
+                output_path = os.path.join(self.workspace, "output.csv")
+                df = pd.read_csv(output_path)
+
+                correctness, _ = calculate_correctness(df, task["clean_target"])
+            except:
+                correctness = 0.0
+
+            # Efficiency score
+            t_ref = task["ref_time"]
+            if exec_duration <= t_ref:
+                efficiency = 1.0
+            else:
+                efficiency = max(0.0, 1.0 - (exec_duration - t_ref) / (4 * t_ref))
+
+            # Update metrics LIVE
+            self.last_metrics = {
+                "correctness": correctness,
+                "efficiency": efficiency,
+                "robustness": self.last_metrics.get("robustness", 0.0)
+            }
+
+            # --- NEW REWARD ---
+            reward = (0.6 * correctness) + (0.4 * efficiency)
+
+            return reward if result.returncode == 0 else reward - 0.3
+
         except subprocess.TimeoutExpired:
-            self.logs = "Execution Timeout! Your pipeline is too slow (Efficiency issue)."
-            return -0.5
-        except Exception as e:
-            self.logs = f"System Error during run: {str(e)}"
+            self.logs = "Execution Timeout!"
             return -1.0
+
 
     def _handle_submit(self) -> float:
         """Final grading using the task's grader."""

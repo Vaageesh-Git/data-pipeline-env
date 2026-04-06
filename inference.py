@@ -50,14 +50,35 @@ async def main():
 
     for step in range(1, max_steps + 1):
         # 2. Agent Reasoning
-        prompt = f"""You are a Data Engineer. 
+        prompt = f"""
+        You are a Data Engineering Agent.
+
+        Goal: Maximize FINAL SCORE.
+
+        Evaluation Criteria:
+        - Correctness (50%) → schema, row count, values
+        - Efficiency (20%) → execution time
+        - Robustness (30%) → handles dirty data
+
+        Current State:
         Files: {obs.get('files')}
         Logs: {obs.get('logs')}
         Metrics: {obs.get('metrics')}
         Preview: {obs.get('data_preview')}
-        
-        Goal: Construct a pipeline in 'pipeline.py' that solves the task.
-        Return JSON: {{"command": "write", "path": "pipeline.py", "content": "..."}} or {{"command": "run"}} or {{"command": "submit"}}"""
+
+        Strategy:
+        - If correctness < 1 → fix logic
+        - If efficiency low → optimize computation
+        - If robustness low → handle nulls, types, edge cases
+
+        Available Actions:
+        1. write → modify pipeline.py
+        2. run → test pipeline
+        3. submit → final answer
+
+        Return JSON only:
+        {{"command": "...", "path": "...", "content": "..."}}
+        """
 
         response = await client.chat.completions.create(
             model=MODEL_NAME,
