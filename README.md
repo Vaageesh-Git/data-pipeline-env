@@ -70,37 +70,46 @@ Works with:
 - Same input → same evaluation → reproducible results  
 - Critical for benchmarking AI systems  
 
+
+
 ---
-
 ## 🏗️ Architecture
-            ┌────────────────────────────┐
-            │   AI Agent / LLM System    │
-            └────────────┬───────────────┘
-                         │
-                         ▼
-            ┌────────────────────────────┐
-            │     Generated Pipeline     │
-            └────────────┬───────────────┘
-                         │
-                         ▼
-            ┌────────────────────────────┐
-            │        OpenEnv Core        │
-            │  (Execution + Validation)  │
-            └────────────┬───────────────┘
-                         │
-          ┌──────────────┼──────────────┐
-          ▼              ▼              ▼
-   Schema Check   Logic Validation   Output Check
-          │              │              │
-          └──────────────┴──────────────┘
-                         ▼
-            ┌────────────────────────────┐
-            │     Feedback Generator     │
-            └────────────────────────────┘
-                         │
-                         ▼
-              Improved Pipeline (Loop)
+> ⚙️ OpenEnv evaluates AI-generated pipelines through a structured execution and feedback loop
 
+        ┌──────────────────────────────┐
+        │   AI Agent / LLM System      │
+        └──────────────┬───────────────┘
+                       │
+                       ▼
+        ┌──────────────────────────────┐
+        │      Generated Pipeline      │
+        └──────────────┬───────────────┘
+                       │
+                       ▼
+        ┌──────────────────────────────┐
+        │         OpenEnv Core         │
+        │   (Execution + Validation)   │
+        └──────────────┬───────────────┘
+                       │
+        ┌──────────────┼──────────────┐
+        ▼              ▼              ▼
+ ┌────────────┐ ┌────────────┐ ┌────────────┐
+ │ Schema     │ │ Logic      │ │ Output     │
+ │ Validation │ │ Validation │ │ Validation │
+ └────────────┘ └────────────┘ └────────────┘
+        \              |              /
+         \             |             /
+          └────────────┴────────────┘
+                       │
+                       ▼
+        ┌──────────────────────────────┐
+        │      Feedback Generator      │
+        └──────────────┬───────────────┘
+                       │
+                       ▼
+        ┌──────────────────────────────┐
+        │   Improved Pipeline (Loop)   │
+        └──────────────────────────────┘
 ---
 
 ⚡ Features
