@@ -17,7 +17,11 @@ dependencies = [
 ]
 
 [project.scripts]
-server = "server.app:main"
+server = "server.app:app"
 
 [tool.openenv]
-entrypoint = "server.app:main"
+entrypoint = "server.app:app"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
