@@ -40,76 +40,6 @@ OpenEnv introduces a **sandboxed execution + evaluation framework** that:
 
 ---
 
-## 📐 Mathematical Framework
-
-To ensure robust evaluation, OpenEnv uses a **reward–penalty based scoring system** to assess pipeline correctness and quality.
-
----
-
-### 🎯 Overall Score
-
-The final pipeline score is computed as:
-
-S = w1 · SchemaScore + w2 · LogicScore + w3 · OutputScore − P
-
-Where:
-- S → Final evaluation score  
-- w1, w2, w3 → Importance weights (w1 + w2 + w3 = 1)  
-- P → Total penalty  
-
----
-
-### 🧪 Schema Validation Score
-
-Measures how well the pipeline adheres to expected structure:
-
-SchemaScore = (Number of Correct Fields) / (Total Expected Fields)
-
----
-
-### 🔍 Logic Validation Score
-
-Evaluates correctness of transformations and operations:
-
-LogicScore = (Correct Operations) / (Total Operations)
-
----
-
-### 📊 Output Validation Score
-
-Checks correctness of final output:
-
-OutputScore = 1 − (|Expected − Actual| / MaxRange)
-
----
-
-### ⚠️ Penalty Function
-
-Penalties are applied for errors such as missing steps, invalid transformations, or runtime failures:
-
-P = α · MissingSteps + β · InvalidOps + γ · RuntimeErrors
-
-Where:
-- α, β, γ → penalty weights  
-
----
-
-### 🔁 Feedback Signal (for Agent Improvement)
-
-The feedback signal used for iterative improvement:
-
-Reward = S − S_prev
-
-Where:
-- S → current score  
-- S_prev → previous iteration score  
-
----
-
-### 💡 Key Insight
-
-> The objective of the agent is to **maximize S while minimizing penalties**, leading to progressively improved pipelines.
-
 ## 🧠 Key Idea (What Makes This Unique)
 
 > OpenEnv is not just a runner — it is an **evaluation ecosystem for AI-generated pipelines**.
@@ -139,6 +69,113 @@ Works with:
 #### 5. 📊 Deterministic Evaluation
 - Same input → same evaluation → reproducible results  
 - Critical for benchmarking AI systems  
+
+
+## 📐 Mathematical Framework (Implementation-Based)
+
+OpenEnv evaluates pipelines using a **multi-objective reward function** derived directly from execution metrics.
+
+---
+
+### 🎯 Final Score
+
+The final evaluation score is:
+
+S = 0.5 · C + 0.2 · E + 0.3 · R
+
+Where:
+- C → Correctness  
+- E → Efficiency  
+- R → Robustness  
+
+This is implemented in the grading system. :contentReference[oaicite:0]{index=0}
+
+---
+
+### 🧪 Correctness (C)
+
+Correctness is a weighted combination of multiple validation checks:
+
+C = 0.2 · C_schema + 0.25 · C_volume + 0.4 · C_value + 0.15 · C_dist
+
+Where:
+
+- C_schema = (Matched Columns) / (Expected Columns)
+- C_volume = 1 − |Rows_actual − Rows_expected| / Rows_expected
+- C_value = 1 − |Sum_actual − Sum_expected| / Sum_expected
+- C_dist = 0.5 · MeanScore + 0.5 · StdScore
+
+This ensures both **structural and statistical correctness**. :contentReference[oaicite:1]{index=1}
+
+---
+
+### ⚡ Efficiency (E)
+
+Efficiency measures execution time relative to a reference:
+
+E = 
+    1                          if T ≤ T_ref  
+    max(0, 1 − (T − T_ref)/(4 · T_ref))   otherwise
+
+Where:
+- T → Execution time  
+- T_ref → Reference time  
+
+This penalizes slow pipelines progressively. :contentReference[oaicite:2]{index=2}
+
+---
+
+### 🛡️ Robustness (R)
+
+Robustness is evaluated via **shadow testing** on perturbed datasets:
+
+R = (1 / N) · Σ C_poison_i
+
+Where:
+- C_poison_i → correctness on poisoned input  
+- N → number of robustness tests  
+
+This ensures pipelines generalize beyond clean data. :contentReference[oaicite:3]{index=3}
+
+---
+
+### 🎮 Step Reward (RL Signal)
+
+During execution, intermediate rewards are given as:
+
+R_step = 0.5 · C + 0.3 · E + 0.2 · R − 0.01 · step_count
+
+Additionally:
+- Runtime failure → penalty = −0.3  
+- Timeout → reward = −1.0  
+
+This creates a **reinforcement learning feedback loop**. :contentReference[oaicite:4]{index=4}
+
+---
+
+### 🎁 Submission Bonus
+
+Final reward includes efficiency bonus:
+
+Bonus = max(0, 0.2 − 0.01 · step_count)
+
+Encouraging faster convergence. :contentReference[oaicite:5]{index=5}
+
+---
+
+### 💡 Optimization Objective
+
+> The agent aims to maximize:
+>
+> S − λ · Steps
+
+Balancing correctness, efficiency, robustness, and exploration cost.
+
+---
+
+## 🧠 Key Insight
+
+OpenEnv transforms pipeline validation into a **multi-objective optimization problem with reinforcement feedback**.
 
 
 
