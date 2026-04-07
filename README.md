@@ -70,11 +70,9 @@ Works with:
 - Same input → same evaluation → reproducible results  
 - Critical for benchmarking AI systems  
 
+> OpenEnv formalizes pipeline evaluation as a multi-objective optimization problem with reinforcement feedback.
 
 ## 📐 Mathematical Framework (Implementation-Based)
-
-OpenEnv evaluates pipelines using a **multi-objective reward function** derived directly from execution metrics.
-
 ---
 
 ### 🎯 Final Score
@@ -88,7 +86,7 @@ Where:
 - E → Efficiency  
 - R → Robustness  
 
-This is implemented in the grading system. :contentReference[oaicite:0]{index=0}
+This is implemented in the grading system.
 
 ---
 
@@ -105,7 +103,7 @@ Where:
 - C_value = 1 − |Sum_actual − Sum_expected| / Sum_expected
 - C_dist = 0.5 · MeanScore + 0.5 · StdScore
 
-This ensures both **structural and statistical correctness**. :contentReference[oaicite:1]{index=1}
+This ensures both **structural and statistical correctness**.
 
 ---
 
@@ -121,7 +119,7 @@ Where:
 - T → Execution time  
 - T_ref → Reference time  
 
-This penalizes slow pipelines progressively. :contentReference[oaicite:2]{index=2}
+This penalizes slow pipelines progressively.
 
 ---
 
@@ -135,7 +133,7 @@ Where:
 - C_poison_i → correctness on poisoned input  
 - N → number of robustness tests  
 
-This ensures pipelines generalize beyond clean data. :contentReference[oaicite:3]{index=3}
+This ensures pipelines generalize beyond clean data.
 
 ---
 
@@ -149,7 +147,7 @@ Additionally:
 - Runtime failure → penalty = −0.3  
 - Timeout → reward = −1.0  
 
-This creates a **reinforcement learning feedback loop**. :contentReference[oaicite:4]{index=4}
+This creates a **reinforcement learning feedback loop**.
 
 ---
 
@@ -159,7 +157,7 @@ Final reward includes efficiency bonus:
 
 Bonus = max(0, 0.2 − 0.01 · step_count)
 
-Encouraging faster convergence. :contentReference[oaicite:5]{index=5}
+Encouraging faster convergence.
 
 ---
 
@@ -286,3 +284,21 @@ Currently:
 OpenEnv introduces a new category:
 
 > 🧠 **AI Pipeline Validation Infrastructure**
+
+---
+
+## 🧩 Vision
+
+> To become the **standard evaluation environment for AI-generated systems**, just like:
+>
+> - Unit tests → for code  
+> - OpenEnv → for pipelines  
+
+---
+
+## 📌 Final Thought
+
+AI can generate pipelines.  
+But without **verification**, they are unreliable.
+
+> **OpenEnv makes AI-generated pipelines trustworthy.**
