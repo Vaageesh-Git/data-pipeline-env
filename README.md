@@ -1,4 +1,3 @@
-<!-- HF SPACE CONFIG -->
 ---
 title: Data Pipeline Environment (OpenEnv)
 emoji: 🚀
@@ -8,7 +7,6 @@ sdk: docker
 app_file: server/app.py
 pinned: false
 ---
-<!-- END HF SPACE CONFIG -->
 
 
 # Data Pipeline Environment (OpenEnv)
