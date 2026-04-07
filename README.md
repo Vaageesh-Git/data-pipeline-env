@@ -1,6 +1,6 @@
 # Data Pipeline Environment (OpenEnv)
 
-## 🌟 Overview
+## Overview
 
 **OpenEnv** is a novel execution and evaluation environment designed to **validate, test, and improve AI-generated data pipelines**.
 
@@ -34,9 +34,20 @@ OpenEnv introduces a **sandboxed execution + evaluation framework** that:
 
 - Executes pipelines safely  
 - Validates outputs against constraints  
-- Detects logical & structural errors  
+- Detects logical & structural errors
+- Measures execution latency and efficiency  
 - Provides actionable feedback  
 - Enables iterative correction (self-improving agents)
+
+---
+
+---
+
+## 🧠 Key Insight
+
+OpenEnv transforms pipeline validation into a **multi-objective optimization problem with reinforcement feedback**.
+
+
 
 ---
 
@@ -169,15 +180,6 @@ Encouraging faster convergence.
 
 Balancing correctness, efficiency, robustness, and exploration cost.
 
----
-
-## 🧠 Key Insight
-
-OpenEnv transforms pipeline validation into a **multi-objective optimization problem with reinforcement feedback**.
-
-
-
----
 ## 🏗️ Architecture
 > ⚙️ OpenEnv evaluates AI-generated pipelines through a structured execution and feedback loop
 ```
