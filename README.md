@@ -275,7 +275,7 @@ Teach correctness via automated evaluation
 
 ---
 
-## 🚀 Why This Matters
+## Why This Matters
 
 ### 🌍 Industry Gap
 
@@ -285,7 +285,7 @@ Currently:
 
 OpenEnv introduces a new category:
 
-> 🧠 **AI Pipeline Validation Infrastructure**
+> **AI Pipeline Validation Infrastructure**
 
 ---
 
