@@ -75,7 +75,7 @@ Works with:
 ---
 ## 🏗️ Architecture
 > ⚙️ OpenEnv evaluates AI-generated pipelines through a structured execution and feedback loop
-
+```
         ┌──────────────────────────────┐
         │   AI Agent / LLM System      │
         └──────────────┬───────────────┘
@@ -110,6 +110,7 @@ Works with:
         ┌──────────────────────────────┐
         │   Improved Pipeline (Loop)   │
         └──────────────────────────────┘
+```
 ---
 
 ⚡ Features
