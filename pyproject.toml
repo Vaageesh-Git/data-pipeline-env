@@ -17,10 +17,10 @@ dependencies = [
 ]
 
 [project.scripts]
-server = "server.app:app"
+server = "server.app:main"
 
 [tool.openenv]
-entrypoint = "server.app:app"
+entrypoint = "server.app:main"
 
 [build-system]
 requires = ["setuptools"]
