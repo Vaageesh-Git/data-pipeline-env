@@ -40,6 +40,76 @@ OpenEnv introduces a **sandboxed execution + evaluation framework** that:
 
 ---
 
+## 📐 Mathematical Framework
+
+To ensure robust evaluation, OpenEnv uses a **reward–penalty based scoring system** to assess pipeline correctness and quality.
+
+---
+
+### 🎯 Overall Score
+
+The final pipeline score is computed as:
+
+S = w1 · SchemaScore + w2 · LogicScore + w3 · OutputScore − P
+
+Where:
+- S → Final evaluation score  
+- w1, w2, w3 → Importance weights (w1 + w2 + w3 = 1)  
+- P → Total penalty  
+
+---
+
+### 🧪 Schema Validation Score
+
+Measures how well the pipeline adheres to expected structure:
+
+SchemaScore = (Number of Correct Fields) / (Total Expected Fields)
+
+---
+
+### 🔍 Logic Validation Score
+
+Evaluates correctness of transformations and operations:
+
+LogicScore = (Correct Operations) / (Total Operations)
+
+---
+
+### 📊 Output Validation Score
+
+Checks correctness of final output:
+
+OutputScore = 1 − (|Expected − Actual| / MaxRange)
+
+---
+
+### ⚠️ Penalty Function
+
+Penalties are applied for errors such as missing steps, invalid transformations, or runtime failures:
+
+P = α · MissingSteps + β · InvalidOps + γ · RuntimeErrors
+
+Where:
+- α, β, γ → penalty weights  
+
+---
+
+### 🔁 Feedback Signal (for Agent Improvement)
+
+The feedback signal used for iterative improvement:
+
+Reward = S − S_prev
+
+Where:
+- S → current score  
+- S_prev → previous iteration score  
+
+---
+
+### 💡 Key Insight
+
+> The objective of the agent is to **maximize S while minimizing penalties**, leading to progressively improved pipelines.
+
 ## 🧠 Key Idea (What Makes This Unique)
 
 > OpenEnv is not just a runner — it is an **evaluation ecosystem for AI-generated pipelines**.
