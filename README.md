@@ -220,6 +220,34 @@ OpenEnv transforms pipeline validation into a **multi-objective optimization pro
 ```
 ---
 
+## 🛠️ Tech Stack
+
+### ⚙️ Core System
+- **Python** — Core execution environment  
+- **FastAPI** — High-performance environment API layer  
+
+### 📊 Data Processing
+- **Pandas** — Data transformation and validation  
+- **DuckDB** — Efficient analytical query execution  
+
+### 🧠 Evaluation Engine
+- Custom **multi-metric scoring system** (Correctness, Efficiency, Robustness)  
+- Constraint-based validation + statistical checks  
+
+### 🤖 AI Integration
+- **LLMs (via OpenAI / HF APIs)** — Agent decision-making  
+- Structured action interface for pipeline generation  
+
+### 🧪 Sandbox & Execution
+- Isolated file system using **temp directories**  
+- Secure execution via **subprocess sandboxing**  
+
+### 📦 Infrastructure
+- Docker (for reproducibility)  
+- HuggingFace Spaces (for deployment-ready environments)  
+
+
+
 ## ⚡ Features
 
 - 🧪 **Sandboxed Execution Engine**
