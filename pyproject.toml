@@ -2,6 +2,8 @@
 name = "data-pipeline-env"
 version = "0.1.0"
 description = "Data pipeline RL environment"
+requires-python = ">=3.9"
+
 dependencies = [
     "fastapi",
     "uvicorn",
@@ -19,9 +21,11 @@ dependencies = [
 [project.scripts]
 server = "server.app:main"
 
+
 [tool.openenv]
+name = "datapipe-sandbox-v1"
 entrypoint = "server.app:main"
 
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
