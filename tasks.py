@@ -278,10 +278,7 @@ def evaluate_pipeline(workspace_path, logs, exec_time, task_config):
 # ]
 
 def safe_grader(*args, **kwargs):
-    return 0.5
-
-def safe_grader(*args, **kwargs):
-    return 0.5
+    return 0.17
 
 TASKS = [
     {
