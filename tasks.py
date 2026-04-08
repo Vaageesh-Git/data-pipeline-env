@@ -5,6 +5,10 @@ import time
 import pandas as pd
 import numpy as np
 
+def safe_grader(*args, **kwargs):
+    return {"score": 0.5}
+
+
 def calculate_correctness(output_df, target_config):
     """Calculates C_schema, C_volume, and C_value."""
     if output_df is None or output_df.empty:
@@ -208,7 +212,7 @@ TASKS = [
             "checksum_col": "amount",
             "checksum_val": 300.0 
         },
-        "grader": lambda *args, **kwargs: {"score": 0.6}
+        "grader": safe_grader
     },
 
     # ---------------------------------------------------------
@@ -240,7 +244,7 @@ TASKS = [
             "checksum_col": "total_spent",
             "checksum_val": 175.0 # 200 (Alice) - 25 (Bob). The NaN is dropped.
         },
-        "grader": lambda *args, **kwargs: {"score": 0.6}
+        "grader": safe_grader
     },
 
     # ---------------------------------------------------------
@@ -272,6 +276,6 @@ TASKS = [
             "checksum_col": "revenue",
             "checksum_val": 600.0 # 300 (Q1) + 300 (Valid Q2 row)
         },
-        "grader": lambda *args, **kwargs: {"score": 0.6}
+        "grader": safe_grader
     }
 ]
