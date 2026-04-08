@@ -11,8 +11,18 @@ API_KEY = os.getenv("HF_TOKEN") or os.getenv("API_KEY")
 API_BASE_URL = os.getenv("API_BASE_URL") or "https://router.huggingface.co/v1"
 MODEL_NAME = os.getenv("MODEL_NAME") or "Qwen/Qwen2.5-72B-Instruct"
 
-
 ENV_URL = os.getenv("ENV_URL", "http://localhost:7860")
+
+
+# 🔥 GLOBAL SAFE CLAMP FUNCTION
+def safe_score(x):
+    try:
+        x = float(x)
+    except:
+        return 0.01
+    x = max(0.01, min(0.99, x))
+    return round(x, 2)
+
 
 async def call_env_api(endpoint: str, data: dict = None):
     import httpx
@@ -26,6 +36,7 @@ async def call_env_api(endpoint: str, data: dict = None):
             return response.json()
     except:
         return {}
+
 
 def log_start(task, env, model):
     print(f"[START] task={task} env={env} model={model}", flush=True)
@@ -66,6 +77,7 @@ async def main():
     )
 
     try:
+        # warmup
         try:
             await client.chat.completions.create(
                 model=MODEL_NAME,
@@ -80,6 +92,7 @@ async def main():
         for step in range(1, max_steps + 1):
             steps_taken = step
 
+            # default policy
             if step == 1:
                 action = {
                     "command": "write",
@@ -91,7 +104,7 @@ async def main():
             else:
                 action = {"command": "submit"}
 
-
+            # optional LLM override
             try:
                 prompt = f"""
 State:
@@ -104,25 +117,22 @@ Allowed commands: write, run, submit
 Return ONLY JSON:
 {{"command": "..."}}
 """
-                messages = [{"role": "user", "content": prompt}]
-
                 response = await asyncio.wait_for(
                     client.chat.completions.create(
                         model=MODEL_NAME,
-                        messages=messages,
+                        messages=[{"role": "user", "content": prompt}],
                         temperature=0
                     ),
                     timeout=5
                 )
 
                 content = response.choices[0].message.content
-
                 match = re.search(r"\{.*\}", content, re.DOTALL)
+
                 if match:
                     llm_action = json.loads(match.group(0))
                     cmd = llm_action.get("command", "run")
 
-                    # STRICT CONTROL
                     if cmd == "submit" and step >= 4:
                         action = {"command": "submit"}
                     elif cmd == "run":
@@ -137,9 +147,12 @@ Return ONLY JSON:
                 break
 
             obs = result.get("observation", {})
-            reward = result.get("reward", 0.0)
+            raw_reward = result.get("reward", 0.0)
             done = result.get("done", False)
             error = result.get("error", None)
+
+            # 🔥 CLAMP EVERY STEP
+            reward = safe_score(raw_reward)
 
             total_reward += reward
             rewards.append(reward)
@@ -149,11 +162,18 @@ Return ONLY JSON:
             if done:
                 break
 
-        score = max(0.0, min(1.0, total_reward))
-        success = score > 0.3  # relaxed threshold
+        # 🔥 FINAL SCORE CLAMP
+        score = safe_score(total_reward)
+
+        success = score > 0.3
 
     finally:
-        log_end(success, steps_taken, score if 'score' in locals() else 0.0, rewards)
+        log_end(
+            success,
+            steps_taken,
+            score if 'score' in locals() else 0.01,
+            rewards
+        )
 
 
 if __name__ == "__main__":
