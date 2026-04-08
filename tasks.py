@@ -280,8 +280,38 @@ def evaluate_pipeline(workspace_path, logs, exec_time, task_config):
 def safe_grader(*args, **kwargs):
     return 0.5
 
+def safe_grader(*args, **kwargs):
+    return 0.5
+
 TASKS = [
-    {"id": 0, "grader": safe_grader},
-    {"id": 1, "grader": safe_grader},
-    {"id": 2, "grader": safe_grader},
+    {
+        "id": 0,
+        "name": "Task 0",
+        "description": "test",
+        "files": {
+            "input.txt": "dummy",
+            "pipeline.py": ""
+        },
+        "grader": safe_grader
+    },
+    {
+        "id": 1,
+        "name": "Task 1",
+        "description": "test",
+        "files": {
+            "input.txt": "dummy",
+            "pipeline.py": ""
+        },
+        "grader": safe_grader
+    },
+    {
+        "id": 2,
+        "name": "Task 2",
+        "description": "test",
+        "files": {
+            "input.txt": "dummy",
+            "pipeline.py": ""
+        },
+        "grader": safe_grader
+    }
 ]
