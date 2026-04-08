@@ -170,6 +170,9 @@ def evaluate_pipeline(workspace_path, logs, exec_time, task_config):
     # --- FINAL SCORE CALCULATION ---
     final_score = (0.5 * metrics["correctness"]) + (0.2 * metrics["efficiency"]) + (0.3 * metrics["robustness"])
     
+    # Ensure score is strictly between 0 and 1 as required by openenv platform validation
+    final_score = max(0.01, min(0.99, float(final_score)))
+    
     return {
         "score": final_score,
         "metrics": metrics,
@@ -178,137 +181,104 @@ def evaluate_pipeline(workspace_path, logs, exec_time, task_config):
 
 # --- TASK DEFINITIONS ---
 
-# tasks.py (Append this to the bottom)
-
-# TASKS = [
-#     # ---------------------------------------------------------
-#     # TASK 0: The Simple Filter (Easy)
-#     # Focus: Basic syntax, Pandas/SQL filtering.
-#     # ---------------------------------------------------------
-#     {
-#         "id": 0,
-#         "name": "The Simple Filter (Easy)",
-#         "description": "Read 'orders.csv', filter for status='Completed', and save to 'output.csv'. Ensure code handles whitespace.",
-#         "input_file": "orders.csv",
-#         "files": {
-#             "orders.csv": "order_id,status,amount\n1,Completed,100\n2,Pending,50\n3,Completed,200\n4,Canceled,0",
-#             "pipeline.py": "import pandas as pd\nimport duckdb\n# Write your pipeline logic here to output 'output.csv'\n"
-#         },
-#         "ref_time": 0.5, 
-#         "clean_target": {
-#             "columns": ["order_id", "status", "amount"],
-#             "row_count": 2,
-#             "checksum_col": "amount",
-#             "checksum_val": 300.0 # 100 + 200
-#         },
-#         # The Poison: Extra spaces in strings, missing amount
-#         "poison_data": "order_id,status,amount\n1,Completed,100\n2,Pending,50\n3, Completed ,200\n4,Canceled,NaN\n5,Completed,0",
-#         "poison_target": {
-#             "columns": ["order_id", "status", "amount"],
-#             "row_count": 3, 
-#             "checksum_col": "amount",
-#             "checksum_val": 300.0 
-#         },
-#         "grader": safe_grader
-#     },
-
-#     # ---------------------------------------------------------
-#     # TASK 1: The Dirty Join (Medium)
-#     # Focus: Schema alignment, handling missing keys, data type casting.
-#     # ---------------------------------------------------------
-#     {
-#         "id": 1,
-#         "name": "The Dirty Join (Medium)",
-#         "description": "Join 'users.csv' and 'tx.csv' on user_id. Calculate the total 'amount' spent per user. Output to 'output.csv' with columns: ['name', 'total_spent']. Drop users with no transactions.",
-#         "input_file": "tx.csv", # This is the file we will poison
-#         "files": {
-#             "users.csv": "user_id,name\n1,Alice\n2,Bob\n3,Charlie",
-#             "tx.csv": "tx_id,user_id,amount\n101,1,50.0\n102,1,150.0\n103,2,75.0",
-#             "pipeline.py": "import pandas as pd\nimport duckdb\n# Output must be ['name', 'total_spent']\n"
-#         },
-#         "ref_time": 1.0,
-#         "clean_target": {
-#             "columns": ["name", "total_spent"],
-#             "row_count": 2, # Alice and Bob
-#             "checksum_col": "total_spent",
-#             "checksum_val": 275.0 # 200 (Alice) + 75 (Bob)
-#         },
-#         # The Poison: user_id 1 is a string "1", negative amounts, NaN user_id
-#         "poison_data": "tx_id,user_id,amount\n101,1,50.0\n102,'1',150.0\n103,2,-25.0\n104,NaN,500.0",
-#         "poison_target": {
-#             "columns": ["name", "total_spent"],
-#             "row_count": 2, 
-#             "checksum_col": "total_spent",
-#             "checksum_val": 175.0 # 200 (Alice) - 25 (Bob). The NaN is dropped.
-#         },
-#         "grader": safe_grader
-#     },
-
-#     # ---------------------------------------------------------
-#     # TASK 2: The Schema Evolution (Hard)
-#     # Focus: Advanced logic, unifying disparate data, efficiency.
-#     # ---------------------------------------------------------
-#     {
-#         "id": 2,
-#         "name": "The Schema Evolution (Hard)",
-#         "description": "Unify 'q1_sales.csv' and 'q2_sales.csv'. They have different schemas. Output a unified 'output.csv' with ['transaction_id', 'revenue']. Unify the revenue metrics safely.",
-#         "input_file": "q2_sales.csv",
-#         "files": {
-#             "q1_sales.csv": "id,rev,tax\n1,100,10\n2,200,20",
-#             "q2_sales.csv": "transaction_id,revenue_net\n3,300\n4,400",
-#             "pipeline.py": "# q1 has 'id' and 'rev'. q2 has 'transaction_id' and 'revenue_net'.\n# Combine them into output.csv with columns ['transaction_id', 'revenue']\n"
-#         },
-#         "ref_time": 1.5,
-#         "clean_target": {
-#             "columns": ["transaction_id", "revenue"],
-#             "row_count": 4, 
-#             "checksum_col": "revenue",
-#             "checksum_val": 1000.0 # 100 + 200 + 300 + 400
-#         },
-#         # The Poison: completely broken Q2 data (mixed types, missing columns)
-#         "poison_data": "transaction_id,revenue_net,extra_col\n3,300,ignore\n4,NaN,ignore\n5,five_hundred,ignore",
-#         "poison_target": {
-#             "columns": ["transaction_id", "revenue"],
-#             "row_count": 4, # 2 from Q1, 2 valid from Q2 (assuming the string 'five_hundred' is dropped/nulled)
-#             "checksum_col": "revenue",
-#             "checksum_val": 600.0 # 300 (Q1) + 300 (Valid Q2 row)
-#         },
-#         "grader": safe_grader
-#     }
-# ]
-
-def safe_grader(*args, **kwargs):
-    return 0.17
-
 TASKS = [
+    # ---------------------------------------------------------
+    # TASK 0: The Simple Filter (Easy)
+    # Focus: Basic syntax, Pandas/SQL filtering.
+    # ---------------------------------------------------------
     {
         "id": 0,
-        "name": "Task 0",
-        "description": "test",
+        "name": "The Simple Filter (Easy)",
+        "description": "Read 'orders.csv', filter for status='Completed', and save to 'output.csv'. Ensure code handles whitespace.",
+        "input_file": "orders.csv",
         "files": {
-            "input.txt": "dummy",
-            "pipeline.py": ""
+            "orders.csv": "order_id,status,amount\n1,Completed,100\n2,Pending,50\n3,Completed,200\n4,Canceled,0",
+            "pipeline.py": "import pandas as pd\nimport duckdb\n# Write your pipeline logic here to output 'output.csv'\n"
         },
-        "grader": safe_grader
+        "ref_time": 0.5, 
+        "clean_target": {
+            "columns": ["order_id", "status", "amount"],
+            "row_count": 2,
+            "checksum_col": "amount",
+            "checksum_val": 300.0 # 100 + 200
+        },
+        # The Poison: Extra spaces in strings, missing amount
+        "poison_data": "order_id,status,amount\n1,Completed,100\n2,Pending,50\n3, Completed ,200\n4,Canceled,NaN\n5,Completed,0",
+        "poison_target": {
+            "columns": ["order_id", "status", "amount"],
+            "row_count": 3, 
+            "checksum_col": "amount",
+            "checksum_val": 300.0 
+        }
     },
+
+    # ---------------------------------------------------------
+    # TASK 1: The Dirty Join (Medium)
+    # Focus: Schema alignment, handling missing keys, data type casting.
+    # ---------------------------------------------------------
     {
         "id": 1,
-        "name": "Task 1",
-        "description": "test",
+        "name": "The Dirty Join (Medium)",
+        "description": "Join 'users.csv' and 'tx.csv' on user_id. Calculate the total 'amount' spent per user. Output to 'output.csv' with columns: ['name', 'total_spent']. Drop users with no transactions.",
+        "input_file": "tx.csv", # This is the file we will poison
         "files": {
-            "input.txt": "dummy",
-            "pipeline.py": ""
+            "users.csv": "user_id,name\n1,Alice\n2,Bob\n3,Charlie",
+            "tx.csv": "tx_id,user_id,amount\n101,1,50.0\n102,1,150.0\n103,2,75.0",
+            "pipeline.py": "import pandas as pd\nimport duckdb\n# Output must be ['name', 'total_spent']\n"
         },
-        "grader": safe_grader
+        "ref_time": 1.0,
+        "clean_target": {
+            "columns": ["name", "total_spent"],
+            "row_count": 2, # Alice and Bob
+            "checksum_col": "total_spent",
+            "checksum_val": 275.0 # 200 (Alice) + 75 (Bob)
+        },
+        # The Poison: user_id 1 is a string "1", negative amounts, NaN user_id
+        "poison_data": "tx_id,user_id,amount\n101,1,50.0\n102,'1',150.0\n103,2,-25.0\n104,NaN,500.0",
+        "poison_target": {
+            "columns": ["name", "total_spent"],
+            "row_count": 2, 
+            "checksum_col": "total_spent",
+            "checksum_val": 175.0 # 200 (Alice) - 25 (Bob). The NaN is dropped.
+        }
     },
+
+    # ---------------------------------------------------------
+    # TASK 2: The Schema Evolution (Hard)
+    # Focus: Advanced logic, unifying disparate data, efficiency.
+    # ---------------------------------------------------------
     {
         "id": 2,
-        "name": "Task 2",
-        "description": "test",
+        "name": "The Schema Evolution (Hard)",
+        "description": "Unify 'q1_sales.csv' and 'q2_sales.csv'. They have different schemas. Output a unified 'output.csv' with ['transaction_id', 'revenue']. Unify the revenue metrics safely.",
+        "input_file": "q2_sales.csv",
         "files": {
-            "input.txt": "dummy",
-            "pipeline.py": ""
+            "q1_sales.csv": "id,rev,tax\n1,100,10\n2,200,20",
+            "q2_sales.csv": "transaction_id,revenue_net\n3,300\n4,400",
+            "pipeline.py": "# q1 has 'id' and 'rev'. q2 has 'transaction_id' and 'revenue_net'.\n# Combine them into output.csv with columns ['transaction_id', 'revenue']\n"
         },
-        "grader": safe_grader
+        "ref_time": 1.5,
+        "clean_target": {
+            "columns": ["transaction_id", "revenue"],
+            "row_count": 4, 
+            "checksum_col": "revenue",
+            "checksum_val": 1000.0 # 100 + 200 + 300 + 400
+        },
+        # The Poison: completely broken Q2 data (mixed types, missing columns)
+        "poison_data": "transaction_id,revenue_net,extra_col\n3,300,ignore\n4,NaN,ignore\n5,five_hundred,ignore",
+        "poison_target": {
+            "columns": ["transaction_id", "revenue"],
+            "row_count": 4, # 2 from Q1, 2 valid from Q2 (assuming the string 'five_hundred' is dropped/nulled)
+            "checksum_col": "revenue",
+            "checksum_val": 600.0 # 300 (Q1) + 300 (Valid Q2 row)
+        }
     }
 ]
+
+def make_grader(config):
+    def grader(workspace_path, logs, exec_time):
+        return evaluate_pipeline(workspace_path, logs, exec_time, config)
+    return grader
+
+for task in TASKS:
+    task["grader"] = make_grader(task)
