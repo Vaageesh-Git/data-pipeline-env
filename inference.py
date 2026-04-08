@@ -12,18 +12,25 @@ HF_TOKEN = os.getenv("HF_TOKEN")
 
 ENV_URL = os.getenv("ENV_URL", "http://localhost:7860")
 
+
 async def call_env_api(endpoint: str, data: dict = None):
     import httpx
-    async with httpx.AsyncClient() as client:
-        url = f"{ENV_URL}/{endpoint}"
-        if data:
-            response = await client.post(url, json=data, timeout=30)
-        else:
-            response = await client.get(url, timeout=30)
-        return response.json()
+    try:
+        async with httpx.AsyncClient() as client:
+            url = f"{ENV_URL}/{endpoint}"
+            if data:
+                response = await client.post(url, json=data, timeout=30)
+            else:
+                response = await client.get(url, timeout=30)
+            return response.json()
+    except Exception as e:
+        print("ENV ERROR:", str(e))
+        return {}
+
 
 def log_start(task, env, model):
     print(f"[START] task={task} env={env} model={model}", flush=True)
+
 
 def log_step(step, action, reward, done, error):
     error_val = error if error else "null"
@@ -32,6 +39,7 @@ def log_step(step, action, reward, done, error):
         flush=True
     )
 
+
 def log_end(success, steps, score, rewards):
     rewards_str = ",".join(f"{r:.2f}" for r in rewards)
     print(
@@ -39,15 +47,22 @@ def log_end(success, steps, score, rewards):
         flush=True
     )
 
+
 async def main():
-    client = AsyncOpenAI(api_key=HF_TOKEN, base_url=API_BASE_URL)
+    use_llm = API_BASE_URL and MODEL_NAME and HF_TOKEN
+
+    if use_llm:
+        client = AsyncOpenAI(api_key=HF_TOKEN, base_url=API_BASE_URL)
 
     rewards = []
     total_reward = 0.0
     max_steps = 10
 
-    # 1. Reset env
+    # Reset environment
     obs = await call_env_api("reset", {"task_id": 0})
+    if not obs:
+        print("Failed to reset environment")
+        return
 
     log_start(
         task="data-pipeline-task-0",
@@ -57,46 +72,74 @@ async def main():
 
     for step in range(1, max_steps + 1):
 
-        prompt = f"""
-        You are a Data Engineering Agent.
+        # Default fallback action
+        action = {"command": "run"}
 
-        Goal: Maximize FINAL SCORE.
+        if use_llm:
+            prompt = f"""
+You are a Data Engineering Agent.
 
-        Evaluation Criteria:
-        - Correctness (50%)
-        - Efficiency (20%)
-        - Robustness (30%)
+Goal: Maximize FINAL SCORE.
 
-        State:
-        Files: {obs.get('files')}
-        Logs: {obs.get('logs')}
-        Metrics: {obs.get('metrics')}
-        Preview: {obs.get('data_preview')}
+Evaluation Criteria:
+- Correctness (50%)
+- Efficiency (20%)
+- Robustness (30%)
 
-        Actions:
-        write | run | submit
+Current State:
+Files: {obs.get('files')}
+Logs: {obs.get('logs')}
+Metrics: {obs.get('metrics')}
+Preview: {obs.get('data_preview')}
 
-        Return JSON:
-        {{"command": "...", "path": "...", "content": "..."}}
-        """
+Available Actions:
+1. write → create/update code
+2. run → execute pipeline
+3. submit → finalize solution
 
-        response = await client.chat.completions.create(
-            model=MODEL_NAME,
-            messages=[{"role": "user", "content": prompt}],
-            response_format={"type": "json_object"}
-        )
+Rules:
+- Always return valid JSON
+- Avoid unnecessary writes
+- Prefer correctness over speed
 
-        try:
-            action = json.loads(response.choices[0].message.content)
-        except:
-            action = {"command": "run"}
+Output format:
+{{"command": "...", "path": "...", "content": "..."}}
+"""
 
-        # 3. Step
+            messages = [{"role": "user", "content": prompt}]
+
+            try:
+                response = await asyncio.wait_for(
+                    client.chat.completions.create(
+                        model=MODEL_NAME,
+                        messages=messages,
+                        temperature=0
+                    ),
+                    timeout=10
+                )
+
+                content = response.choices[0].message.content
+
+                try:
+                    action = json.loads(content)
+                except Exception:
+                    print("JSON parse failed, fallback to run")
+                    action = {"command": "run"}
+
+            except Exception as e:
+                print("LLM ERROR:", str(e))
+                action = {"command": "run"}
+
+        # Execute step
         result = await call_env_api("step", action)
 
-        obs = result["observation"]
-        reward = result["reward"]
-        done = result["done"]
+        if not result:
+            print("Step failed")
+            break
+
+        obs = result.get("observation", {})
+        reward = result.get("reward", 0.0)
+        done = result.get("done", False)
         error = result.get("error", None)
 
         total_reward += reward
@@ -117,4 +160,7 @@ async def main():
     )
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except Exception as e:
+        print("FATAL ERROR:", str(e))
