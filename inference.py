@@ -2,6 +2,7 @@ import os
 import asyncio
 import json
 import re
+from typing import Optional
 from openai import AsyncOpenAI
 from dotenv import load_dotenv
 
@@ -24,12 +25,14 @@ def safe_score(x):
     return round(x, 2)
 
 
-async def call_env_api(endpoint: str, data: dict = None):
+async def call_env_api(endpoint: str, data: Optional[dict] = None):
     import httpx
     try:
         async with httpx.AsyncClient() as client:
             url = f"{ENV_URL}/{endpoint}"
-            if data:
+            if endpoint == "reset":
+                response = await client.post(url, params=data or {}, timeout=30)
+            elif data:
                 response = await client.post(url, json=data, timeout=30)
             else:
                 response = await client.get(url, timeout=30)
@@ -69,6 +72,7 @@ async def main():
     max_steps = 10
     steps_taken = 0
     success = False
+    score = 0.01
 
     log_start(
         task="data-pipeline-task-0",
@@ -96,8 +100,8 @@ async def main():
             if step == 1:
                 action = {
                     "command": "write",
-                    "path": "solution.py",
-                    "content": "print('pipeline executed')"
+                    "path": "pipeline.py",
+                    "content": "import pandas as pd\n\n\ndef main():\n    raise NotImplementedError('Implement the task pipeline')\n\n\nif __name__ == '__main__':\n    main()\n"
                 }
             elif step <= 6:
                 action = {"command": "run"}
@@ -113,6 +117,7 @@ Logs: {obs.get('logs')}
 Metrics: {obs.get('metrics')}
 
 Allowed commands: write, run, submit
+The runnable file is pipeline.py and the required output is output.csv.
 
 Return ONLY JSON:
 {{"command": "..."}}
@@ -126,7 +131,7 @@ Return ONLY JSON:
                     timeout=5
                 )
 
-                content = response.choices[0].message.content
+                content = response.choices[0].message.content or ""
                 match = re.search(r"\{.*\}", content, re.DOTALL)
 
                 if match:
@@ -171,7 +176,7 @@ Return ONLY JSON:
         log_end(
             success,
             steps_taken,
-            score if 'score' in locals() else 0.01,
+            score,
             rewards
         )
 
