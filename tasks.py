@@ -130,14 +130,19 @@ def evaluate_pipeline(workspace_path, logs, exec_time, task_config):
                     with open(poison_path, "w") as f:
                         f.write(poison)
 
+                    import sys
+                    safe_env = {
+                        "PATH": os.environ.get("PATH", ""),
+                        "PYTHONPATH": os.environ.get("PYTHONPATH", "")
+                    }
                     # Run pipeline again
                     shadow_run = subprocess.run(
-                        ["python3", "pipeline.py"],
+                        [sys.executable, "pipeline.py"],
                         cwd=workspace_path,
                         capture_output=True,
                         text=True,
                         timeout=15,
-                        env={}
+                        env=safe_env
                     )
 
                     if shadow_run.returncode == 0:

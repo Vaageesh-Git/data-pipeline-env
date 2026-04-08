@@ -82,14 +82,19 @@ class DataPipelineEnv:
 
     def _handle_run(self) -> float:
         start_exec = time.time()
+        import sys
+        safe_env = {
+            "PATH": os.environ.get("PATH", ""),
+            "PYTHONPATH": os.environ.get("PYTHONPATH", "")
+        }
         try:
             result = subprocess.run(
-                ["python3", "pipeline.py"],
+                [sys.executable, "pipeline.py"],
                 cwd=self.workspace,
                 capture_output=True,
                 text=True,
                 timeout=15,  # Prevent infinite loops
-                env={},  #. Sandbox: removes all environment variables
+                env=safe_env,
             )
 
             exec_duration = time.time() - start_exec

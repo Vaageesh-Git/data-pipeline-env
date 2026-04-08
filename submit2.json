@@ -1,0 +1,1 @@
+{"observation":{"files":["orders.csv","pipeline.py"],"logs":"Task Started: The Simple Filter (Easy)\nRead 'orders.csv', filter for status='Completed', and save to 'output.csv'. Ensure code handles whitespace.","metrics":{"correctness":0.0,"efficiency":1.0,"robustness":0.0},"data_preview":"No output data found yet.","done":true},"reward":0.39,"done":true,"info":{}}
