@@ -5,10 +5,14 @@ import time
 import pandas as pd
 import numpy as np
 
-def make_grader(task_config):
-    def grader(ws, logs, exec_time):
-        return evaluate_pipeline(ws, logs, exec_time, task_config)
-    return grader
+def grader_task_0(ws, logs, exec_time):
+    return evaluate_pipeline(ws, logs, exec_time, TASKS[0])
+
+def grader_task_1(ws, logs, exec_time):
+    return evaluate_pipeline(ws, logs, exec_time, TASKS[1])
+
+def grader_task_2(ws, logs, exec_time):
+    return evaluate_pipeline(ws, logs, exec_time, TASKS[2])
 
 def calculate_correctness(output_df, target_config):
     """Calculates C_schema, C_volume, and C_value."""
@@ -213,7 +217,7 @@ TASKS = [
             "checksum_col": "amount",
             "checksum_val": 300.0 
         },
-        "grader": None
+        "grader": grader_task_0
     },
 
     # ---------------------------------------------------------
@@ -245,7 +249,7 @@ TASKS = [
             "checksum_col": "total_spent",
             "checksum_val": 175.0 # 200 (Alice) - 25 (Bob). The NaN is dropped.
         },
-        "grader": None
+        "grader": grader_task_1
     },
 
     # ---------------------------------------------------------
@@ -277,9 +281,6 @@ TASKS = [
             "checksum_col": "revenue",
             "checksum_val": 600.0 # 300 (Q1) + 300 (Valid Q2 row)
         },
-        "grader": None
+        "grader": grader_task_2
     }
 ]
-
-for task in TASKS:
-    task["grader"] = make_grader(task)
