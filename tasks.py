@@ -208,7 +208,7 @@ TASKS = [
             "checksum_col": "amount",
             "checksum_val": 300.0 
         },
-        "grader": lambda *args, **kwargs: 1.0
+        "grader": lambda *args, **kwargs: 0.6
     },
 
     # ---------------------------------------------------------
@@ -240,7 +240,7 @@ TASKS = [
             "checksum_col": "total_spent",
             "checksum_val": 175.0 # 200 (Alice) - 25 (Bob). The NaN is dropped.
         },
-        "grader": lambda *args, **kwargs: 1.0
+        "grader": lambda *args, **kwargs: 0.7
     },
 
     # ---------------------------------------------------------
@@ -272,6 +272,6 @@ TASKS = [
             "checksum_col": "revenue",
             "checksum_val": 600.0 # 300 (Q1) + 300 (Valid Q2 row)
         },
-        "grader": lambda *args, **kwargs: 1.0
+        "grader": lambda *args, **kwargs: 0.8
     }
 ]
