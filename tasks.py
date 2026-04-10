@@ -869,6 +869,7 @@ TASKS = [
         "id": 0,
         "name": "Temporal Discount Attribution",
         "description": "Resolve customer tier and SKU discounts with temporal joins, then aggregate net revenue by region and tier.",
+        "difficulty": "medium",
         "instructions": (
             "Read `customer_history.csv`, `discount_rules.csv`, and `orders.csv`. Normalize `customer_id` and `sku` by trimming whitespace and lowercasing. "
             "Normalize `tier` and `region` to uppercase. For each order, resolve the effective customer-history row where `valid_from <= order_ts < valid_to`, "
@@ -882,8 +883,10 @@ TASKS = [
         "sort_by": ["region", "tier"],
         "ref_time": 1.0,
         "timeout": 20,
+        "max_steps": 20,
+        "success_threshold": 0.7,
         "transform": transform_temporal_discount_attribution,
-        "grader": "tasks.grade_submission",
+        "grader_path": "graders.graders:grade_task_0",
         "public_case": {
             "name": "public",
             "files": {
@@ -915,6 +918,7 @@ TASKS = [
         "id": 1,
         "name": "Customer CDC Merge",
         "description": "Apply retry-deduplicated CDC events with partial updates, deletes, and re-inserts to build the final customer master.",
+        "difficulty": "medium",
         "instructions": (
             "Read `snapshot_customers.csv` and `customer_cdc.csv`. Normalize `customer_id` and `email` by trimming whitespace and lowercasing. Normalize `status` "
             "by trimming whitespace and lowercasing. In the CDC stream, rows can be retried: if multiple rows share the same `event_id`, keep only the row with the "
@@ -929,8 +933,10 @@ TASKS = [
         "sort_by": ["customer_id"],
         "ref_time": 1.0,
         "timeout": 20,
+        "max_steps": 20,
+        "success_threshold": 0.7,
         "transform": transform_customer_cdc_merge,
-        "grader": "tasks.grade_submission",
+        "grader_path": "graders.graders:grade_task_1",
         "public_case": {
             "name": "public",
             "files": {
@@ -959,6 +965,7 @@ TASKS = [
         "id": 2,
         "name": "Payment Reconciliation",
         "description": "Reconcile captured payments against refunds and lost chargebacks across currencies using event-date FX conversion.",
+        "difficulty": "medium",
         "instructions": (
             "Read `payments.csv`, `refunds.csv`, `chargebacks.csv`, and `fx_rates.csv`. Normalize `merchant_id` and currencies by trimming whitespace and uppercasing; "
             "normalize statuses by trimming whitespace and lowercasing. Consider only payments whose status is `captured`. Convert each captured payment amount to USD using the "
@@ -973,8 +980,10 @@ TASKS = [
         "sort_by": ["merchant_id"],
         "ref_time": 1.1,
         "timeout": 20,
+        "max_steps": 20,
+        "success_threshold": 0.7,
         "transform": transform_payment_reconciliation,
-        "grader": "tasks.grade_submission",
+        "grader_path": "graders.graders:grade_task_2",
         "public_case": {
             "name": "public",
             "files": {
@@ -1009,6 +1018,7 @@ TASKS = [
         "id": 3,
         "name": "Session Funnel With Identity Stitching",
         "description": "Resolve temporal identity mappings, sessionize user behavior, and compute conversion-funnel revenue.",
+        "difficulty": "hard",
         "instructions": (
             "Read `identity_map.csv` and `events.csv`. Normalize `identity_type`, `identity_value`, `user_id`, and `event_type` by trimming whitespace and lowercasing. "
             "Use `identity_map.csv` to resolve each event to a user: match rows where identity type and value match, and `valid_from <= event_ts < valid_to`, treating blank "
@@ -1023,8 +1033,10 @@ TASKS = [
         "sort_by": ["user_id"],
         "ref_time": 1.1,
         "timeout": 20,
+        "max_steps": 20,
+        "success_threshold": 0.7,
         "transform": transform_session_funnel,
-        "grader": "tasks.grade_submission",
+        "grader_path": "graders.graders:grade_task_3",
         "public_case": {
             "name": "public",
             "files": {
@@ -1053,6 +1065,7 @@ TASKS = [
         "id": 4,
         "name": "BOM Fulfillment Simulation",
         "description": "Simulate warehouse-level component allocation with receipts, priorities, and shared BOM contention.",
+        "difficulty": "hard",
         "instructions": (
             "Read `inventory_snapshots.csv`, `receipts.csv`, `bom.csv`, and `orders.csv`. Normalize `component_id` and `sku` by trimming whitespace and lowercasing. "
             "Normalize `warehouse_id` by trimming whitespace and uppercasing. Start from the inventory snapshot. Process receipts in chronological order; a receipt becomes "
@@ -1068,8 +1081,10 @@ TASKS = [
         "sort_by": ["order_id"],
         "ref_time": 1.2,
         "timeout": 20,
+        "max_steps": 20,
+        "success_threshold": 0.7,
         "transform": transform_bom_fulfillment,
-        "grader": "tasks.grade_submission",
+        "grader_path": "graders.graders:grade_task_4",
         "public_case": {
             "name": "public",
             "files": {
