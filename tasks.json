@@ -1,0 +1,34 @@
+{
+  "tasks": [
+    {
+      "id": 0,
+      "name": "Temporal Discount Attribution",
+      "description": "Resolve customer tier and SKU discounts with temporal joins, then aggregate net revenue by region and tier.",
+      "grader": "tasks.grade_submission"
+    },
+    {
+      "id": 1,
+      "name": "Customer CDC Merge",
+      "description": "Apply retry-deduplicated CDC events with partial updates, deletes, and re-inserts to build the final customer master.",
+      "grader": "tasks.grade_submission"
+    },
+    {
+      "id": 2,
+      "name": "Payment Reconciliation",
+      "description": "Reconcile captured payments against refunds and lost chargebacks across currencies using event-date FX conversion.",
+      "grader": "tasks.grade_submission"
+    },
+    {
+      "id": 3,
+      "name": "Session Funnel With Identity Stitching",
+      "description": "Resolve temporal identity mappings, sessionize user behavior, and compute conversion-funnel revenue.",
+      "grader": "tasks.grade_submission"
+    },
+    {
+      "id": 4,
+      "name": "BOM Fulfillment Simulation",
+      "description": "Simulate warehouse-level component allocation with receipts, priorities, and shared BOM contention.",
+      "grader": "tasks.grade_submission"
+    }
+  ]
+}

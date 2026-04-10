@@ -29,6 +29,7 @@ async def metadata():
         "name": "datapipe-sandbox-v1",
         "description": "Data pipeline execution and grading environment.",
         "task_count": len(TASKS),
+        "tasks": [serialize_task(task) for task in TASKS],
     }
 
 

@@ -883,6 +883,7 @@ TASKS = [
         "ref_time": 1.0,
         "timeout": 20,
         "transform": transform_temporal_discount_attribution,
+        "grader": "tasks.grade_submission",
         "public_case": {
             "name": "public",
             "files": {
@@ -929,6 +930,7 @@ TASKS = [
         "ref_time": 1.0,
         "timeout": 20,
         "transform": transform_customer_cdc_merge,
+        "grader": "tasks.grade_submission",
         "public_case": {
             "name": "public",
             "files": {
@@ -972,6 +974,7 @@ TASKS = [
         "ref_time": 1.1,
         "timeout": 20,
         "transform": transform_payment_reconciliation,
+        "grader": "tasks.grade_submission",
         "public_case": {
             "name": "public",
             "files": {
@@ -1021,6 +1024,7 @@ TASKS = [
         "ref_time": 1.1,
         "timeout": 20,
         "transform": transform_session_funnel,
+        "grader": "tasks.grade_submission",
         "public_case": {
             "name": "public",
             "files": {
@@ -1065,6 +1069,7 @@ TASKS = [
         "ref_time": 1.2,
         "timeout": 20,
         "transform": transform_bom_fulfillment,
+        "grader": "tasks.grade_submission",
         "public_case": {
             "name": "public",
             "files": {
