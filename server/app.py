@@ -5,6 +5,7 @@ from fastapi import Body, FastAPI, HTTPException, Query, Request
 from models import Action, Observation, State
 from env import DataPipelineEnv
 from tasks import TASKS
+from tasks.email_data import TASK_DIFFICULTY, TASK_EMAILS, TASK_MAX_STEPS, TASK_OBJECTIVES
 from graders.graders import GRADERS
 import uvicorn
 
@@ -30,8 +31,8 @@ async def metadata():
         "name": "datapipe-sandbox-v1",
         "description": "Data pipeline execution and grading environment.",
         "version": "1.0.0",
-        "task_count": len(TASKS),
-        "tasks": [serialize_task(task) for task in TASKS],
+        "task_count": len(TASK_EMAILS),
+        "tasks": [serialize_registry_task(task_id) for task_id in TASK_EMAILS],
     }
 
 
@@ -78,6 +79,28 @@ def serialize_task(task: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def serialize_registry_task(task_id: str) -> dict[str, Any]:
+    task_index = parse_task_id(task_id)
+    task = TASKS[task_index]
+    has_grader = task_id in GRADERS
+    return {
+        "id": task_id,
+        "task_id": task_id,
+        "index": task_index,
+        "name": task["name"],
+        "description": TASK_OBJECTIVES[task_id],
+        "difficulty": TASK_DIFFICULTY.get(task_id, "medium"),
+        "entrypoint": task["entrypoint"],
+        "output_file": task["output_file"],
+        "input_files": task["input_files"],
+        "max_steps": TASK_MAX_STEPS[task_id],
+        "success_threshold": task.get("success_threshold", 0.7),
+        "has_grader": has_grader,
+        "grader": has_grader,
+        "grader_path": task["grader_path"],
+    }
+
+
 def parse_task_id(value: Any) -> int:
     if isinstance(value, str) and value.startswith("task_"):
         value = value.removeprefix("task_")
@@ -92,7 +115,7 @@ def parse_task_id(value: Any) -> int:
 
 @app.get("/tasks")
 async def list_tasks():
-    return {"tasks": [serialize_task(task) for task in TASKS]}
+    return {"tasks": [serialize_registry_task(task_id) for task_id in TASK_EMAILS]}
 
 
 @app.get("/tasks/{task_id}")
@@ -109,8 +132,8 @@ async def validate():
         "step_endpoint": True,
         "state_endpoint": True,
         "tasks_endpoint": True,
-        "min_3_tasks": len(TASKS) >= 3,
-        "all_tasks_have_graders": all(str(task["id"]) in GRADERS for task in TASKS),
+        "min_3_tasks": len(TASK_EMAILS) >= 3,
+        "all_tasks_have_graders": all(task_id in GRADERS for task_id in TASK_EMAILS),
         "reward_shaped": True,
     }
     return {
@@ -118,8 +141,8 @@ async def validate():
         "checks": checks,
         "env_name": "datapipe-sandbox-v1",
         "version": "1.0.0",
-        "task_count": len(TASKS),
-        "tasks_with_graders": sum(1 for task in TASKS if str(task["id"]) in GRADERS),
+        "task_count": len(TASK_EMAILS),
+        "tasks_with_graders": sum(1 for task_id in TASK_EMAILS if task_id in GRADERS),
     }
 
 
