@@ -886,7 +886,7 @@ TASKS = [
         "max_steps": 20,
         "success_threshold": 0.7,
         "transform": transform_temporal_discount_attribution,
-        "grader_path": "graders.graders:grade_task_0",
+        "grader_path": "tasks.task_0.grader:grade",
         "public_case": {
             "name": "public",
             "files": {
@@ -936,7 +936,7 @@ TASKS = [
         "max_steps": 20,
         "success_threshold": 0.7,
         "transform": transform_customer_cdc_merge,
-        "grader_path": "graders.graders:grade_task_1",
+        "grader_path": "tasks.task_1.grader:grade",
         "public_case": {
             "name": "public",
             "files": {
@@ -983,7 +983,7 @@ TASKS = [
         "max_steps": 20,
         "success_threshold": 0.7,
         "transform": transform_payment_reconciliation,
-        "grader_path": "graders.graders:grade_task_2",
+        "grader_path": "tasks.task_2.grader:grade",
         "public_case": {
             "name": "public",
             "files": {
@@ -1036,7 +1036,7 @@ TASKS = [
         "max_steps": 20,
         "success_threshold": 0.7,
         "transform": transform_session_funnel,
-        "grader_path": "graders.graders:grade_task_3",
+        "grader_path": "tasks.task_3.grader:grade",
         "public_case": {
             "name": "public",
             "files": {
@@ -1084,7 +1084,7 @@ TASKS = [
         "max_steps": 20,
         "success_threshold": 0.7,
         "transform": transform_bom_fulfillment,
-        "grader_path": "graders.graders:grade_task_4",
+        "grader_path": "tasks.task_4.grader:grade",
         "public_case": {
             "name": "public",
             "files": {

@@ -59,7 +59,7 @@ async def mcp(payload: dict[str, Any] = Body(default_factory=dict)):
 def serialize_task(task: dict[str, Any]) -> dict[str, Any]:
     task_index = parse_task_id(task["id"])
     task_id = f"task_{task_index}"
-    has_grader = task_index in GRADERS and callable(task.get("grader"))
+    has_grader = task_id in GRADERS and callable(task.get("grader"))
     return {
         "id": task_id,
         "task_id": task_id,
@@ -74,7 +74,7 @@ def serialize_task(task: dict[str, Any]) -> dict[str, Any]:
         "success_threshold": task.get("success_threshold", 0.7),
         "has_grader": has_grader,
         "grader": has_grader,
-        "grader_path": f"graders.graders:grade_task_{task_index}",
+        "grader_path": f"tasks.task_{task_index}.grader:grade",
     }
 
 
@@ -110,7 +110,7 @@ async def validate():
         "state_endpoint": True,
         "tasks_endpoint": True,
         "min_3_tasks": len(TASKS) >= 3,
-        "all_tasks_have_graders": all(parse_task_id(task["id"]) in GRADERS for task in TASKS),
+        "all_tasks_have_graders": all(str(task["id"]) in GRADERS for task in TASKS),
         "reward_shaped": True,
     }
     return {
@@ -119,14 +119,14 @@ async def validate():
         "env_name": "datapipe-sandbox-v1",
         "version": "1.0.0",
         "task_count": len(TASKS),
-        "tasks_with_graders": sum(1 for task in TASKS if parse_task_id(task["id"]) in GRADERS),
+        "tasks_with_graders": sum(1 for task in TASKS if str(task["id"]) in GRADERS),
     }
 
 
 @app.get("/grade/{task_id}")
 async def grade_current(task_id: str):
     task_index = parse_task_id(task_id)
-    grader = GRADERS.get(task_index)
+    grader = GRADERS.get(f"task_{task_index}")
     if not grader:
         raise HTTPException(status_code=404, detail=f"No grader for task: {task_id}")
     if not env.workspace:

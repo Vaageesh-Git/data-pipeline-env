@@ -19,12 +19,12 @@ dependencies = [
 ]
 
 [project.scripts]
-server = "server.app:main"
+server = "app:main"
 
 
 [tool.openenv]
 name = "datapipe-sandbox-v1"
-entrypoint = "server.app:main"
+entrypoint = "app:main"
 
 [build-system]
 requires = ["setuptools", "wheel"]

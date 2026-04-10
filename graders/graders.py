@@ -56,9 +56,9 @@ def grade_task_4(workspace_path: str | None = None, **kwargs: Any) -> dict[str, 
 
 
 GRADERS = {
-    0: grade_task_0,
-    1: grade_task_1,
-    2: grade_task_2,
-    3: grade_task_3,
-    4: grade_task_4,
+    "task_0": grade_task_0,
+    "task_1": grade_task_1,
+    "task_2": grade_task_2,
+    "task_3": grade_task_3,
+    "task_4": grade_task_4,
 }
