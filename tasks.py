@@ -866,7 +866,7 @@ def transform_bom_fulfillment(frames):
 
 TASKS = [
     {
-        "id": 0,
+        "id": "task_0",
         "name": "Temporal Discount Attribution",
         "description": "Resolve customer tier and SKU discounts with temporal joins, then aggregate net revenue by region and tier.",
         "difficulty": "medium",
@@ -915,7 +915,7 @@ TASKS = [
         ],
     },
     {
-        "id": 1,
+        "id": "task_1",
         "name": "Customer CDC Merge",
         "description": "Apply retry-deduplicated CDC events with partial updates, deletes, and re-inserts to build the final customer master.",
         "difficulty": "medium",
@@ -962,7 +962,7 @@ TASKS = [
         ],
     },
     {
-        "id": 2,
+        "id": "task_2",
         "name": "Payment Reconciliation",
         "description": "Reconcile captured payments against refunds and lost chargebacks across currencies using event-date FX conversion.",
         "difficulty": "medium",
@@ -1015,7 +1015,7 @@ TASKS = [
         ],
     },
     {
-        "id": 3,
+        "id": "task_3",
         "name": "Session Funnel With Identity Stitching",
         "description": "Resolve temporal identity mappings, sessionize user behavior, and compute conversion-funnel revenue.",
         "difficulty": "hard",
@@ -1062,7 +1062,7 @@ TASKS = [
         ],
     },
     {
-        "id": 4,
+        "id": "task_4",
         "name": "BOM Fulfillment Simulation",
         "description": "Simulate warehouse-level component allocation with receipts, priorities, and shared BOM contention.",
         "difficulty": "hard",

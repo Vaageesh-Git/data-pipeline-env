@@ -7,35 +7,35 @@ runtime: fastapi
 app: server.app:app
 port: 7860
 tasks:
-  - id: 0
+  - id: task_0
     name: Temporal Discount Attribution
     difficulty: medium
     description: Resolve customer tier and SKU discounts with temporal joins, then aggregate net revenue by region and tier.
     max_steps: 20
     success_threshold: 0.7
     grader: graders.graders:grade_task_0
-  - id: 1
+  - id: task_1
     name: Customer CDC Merge
     difficulty: medium
     description: Apply retry-deduplicated CDC events with partial updates, deletes, and re-inserts to build the final customer master.
     max_steps: 20
     success_threshold: 0.7
     grader: graders.graders:grade_task_1
-  - id: 2
+  - id: task_2
     name: Payment Reconciliation
     difficulty: medium
     description: Reconcile captured payments against refunds and lost chargebacks across currencies using event-date FX conversion.
     max_steps: 20
     success_threshold: 0.7
     grader: graders.graders:grade_task_2
-  - id: 3
+  - id: task_3
     name: Session Funnel With Identity Stitching
     difficulty: hard
     description: Resolve temporal identity mappings, sessionize user behavior, and compute conversion-funnel revenue.
     max_steps: 20
     success_threshold: 0.7
     grader: graders.graders:grade_task_3
-  - id: 4
+  - id: task_4
     name: BOM Fulfillment Simulation
     difficulty: hard
     description: Simulate warehouse-level component allocation with receipts, priorities, and shared BOM contention.

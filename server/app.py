@@ -57,9 +57,13 @@ async def mcp(payload: dict[str, Any] = Body(default_factory=dict)):
 
 
 def serialize_task(task: dict[str, Any]) -> dict[str, Any]:
-    has_grader = int(task["id"]) in GRADERS and callable(task.get("grader"))
+    task_index = parse_task_id(task["id"])
+    task_id = f"task_{task_index}"
+    has_grader = task_index in GRADERS and callable(task.get("grader"))
     return {
-        "id": task["id"],
+        "id": task_id,
+        "task_id": task_id,
+        "index": task_index,
         "name": task["name"],
         "description": task["description"],
         "difficulty": task.get("difficulty", "medium"),
@@ -70,8 +74,20 @@ def serialize_task(task: dict[str, Any]) -> dict[str, Any]:
         "success_threshold": task.get("success_threshold", 0.7),
         "has_grader": has_grader,
         "grader": has_grader,
-        "grader_path": f"graders.graders:grade_task_{task['id']}",
+        "grader_path": f"graders.graders:grade_task_{task_index}",
     }
+
+
+def parse_task_id(value: Any) -> int:
+    if isinstance(value, str) and value.startswith("task_"):
+        value = value.removeprefix("task_")
+    try:
+        task_id = int(value)
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=400, detail="task_id must be an integer or task_<integer>")
+    if task_id < 0 or task_id >= len(TASKS):
+        raise HTTPException(status_code=404, detail=f"Unknown task_id: {value}")
+    return task_id
 
 
 @app.get("/tasks")
@@ -80,10 +96,8 @@ async def list_tasks():
 
 
 @app.get("/tasks/{task_id}")
-async def get_task(task_id: int):
-    if task_id < 0 or task_id >= len(TASKS):
-        raise HTTPException(status_code=404, detail=f"Unknown task_id: {task_id}")
-    return serialize_task(TASKS[task_id])
+async def get_task(task_id: str):
+    return serialize_task(TASKS[parse_task_id(task_id)])
 
 
 @app.get("/validate")
@@ -96,7 +110,7 @@ async def validate():
         "state_endpoint": True,
         "tasks_endpoint": True,
         "min_3_tasks": len(TASKS) >= 3,
-        "all_tasks_have_graders": all(int(task["id"]) in GRADERS for task in TASKS),
+        "all_tasks_have_graders": all(parse_task_id(task["id"]) in GRADERS for task in TASKS),
         "reward_shaped": True,
     }
     return {
@@ -105,13 +119,14 @@ async def validate():
         "env_name": "datapipe-sandbox-v1",
         "version": "1.0.0",
         "task_count": len(TASKS),
-        "tasks_with_graders": sum(1 for task in TASKS if int(task["id"]) in GRADERS),
+        "tasks_with_graders": sum(1 for task in TASKS if parse_task_id(task["id"]) in GRADERS),
     }
 
 
 @app.get("/grade/{task_id}")
-async def grade_current(task_id: int):
-    grader = GRADERS.get(task_id)
+async def grade_current(task_id: str):
+    task_index = parse_task_id(task_id)
+    grader = GRADERS.get(task_index)
     if not grader:
         raise HTTPException(status_code=404, detail=f"No grader for task: {task_id}")
     if not env.workspace:
@@ -119,9 +134,9 @@ async def grade_current(task_id: int):
     return grader(env.workspace)
 
 
-async def resolve_task_id(request: Request, query_task_id: Optional[int]) -> int:
+async def resolve_task_id(request: Request, query_task_id: Optional[str]) -> int:
     if query_task_id is not None:
-        return query_task_id
+        return parse_task_id(query_task_id)
 
     try:
         payload = await request.json()
@@ -130,10 +145,7 @@ async def resolve_task_id(request: Request, query_task_id: Optional[int]) -> int
 
     if isinstance(payload, dict):
         value = payload.get("task_id", payload.get("id", 0))
-        try:
-            return int(value)
-        except (TypeError, ValueError):
-            raise HTTPException(status_code=400, detail="task_id must be an integer")
+        return parse_task_id(value)
 
     return 0
 
@@ -141,7 +153,7 @@ async def resolve_task_id(request: Request, query_task_id: Optional[int]) -> int
 @app.post("/reset", response_model=Observation)
 async def reset(
     request: Request,
-    task_id: Optional[int] = Query(default=None),
+    task_id: Optional[str] = Query(default=None),
 ):
     """
     Resets the environment to a specific task.

@@ -3,6 +3,12 @@ from typing import Any
 from tasks import TASKS
 
 
+def _task_index(task_id: int | str) -> int:
+    if isinstance(task_id, str) and task_id.startswith("task_"):
+        task_id = task_id.removeprefix("task_")
+    return int(task_id)
+
+
 def _normalize_result(result: dict[str, Any]) -> dict[str, Any]:
     score = float(result.get("score", 0.0))
     metrics = result.get("metrics", {})
@@ -14,7 +20,7 @@ def _normalize_result(result: dict[str, Any]) -> dict[str, Any]:
 
 
 def grade_task(task_id: int, workspace_path: str | None = None, **kwargs: Any) -> dict[str, Any]:
-    task_id = int(task_id)
+    task_id = _task_index(task_id)
     if task_id < 0 or task_id >= len(TASKS):
         return {"score": 0.0, "metrics": {}, "feedback": f"Unknown task_id: {task_id}"}
 
