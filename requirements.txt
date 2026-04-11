@@ -6,8 +6,7 @@ duckdb
 openai
 openenv-core
 python-multipart
-# For data generation in tasks
 faker
 numpy
 python-dotenv
-asyncio
+httpx
