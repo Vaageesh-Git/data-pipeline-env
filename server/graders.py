@@ -46,7 +46,22 @@ class Task4Grader:
         return _normalize(TASKS[4]["grader"](workspace_path, kwargs.get("logs"), kwargs.get("last_exec_time")))
 
 
+class EasyGrader(Task0Grader):
+    pass
+
+
+class MediumGrader(Task1Grader):
+    pass
+
+
+class HardGrader(Task2Grader):
+    pass
+
+
 GRADERS = {
+    "task_easy": EasyGrader(),
+    "task_medium": MediumGrader(),
+    "task_hard": HardGrader(),
     "task_0": Task0Grader(),
     "task_1": Task1Grader(),
     "task_2": Task2Grader(),

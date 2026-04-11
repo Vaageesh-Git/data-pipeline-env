@@ -1,28 +1,15 @@
 spec_version: 1
 app: server.app:app
 tasks:
-  - id: task_0
-    name: Temporal Discount Attribution
+  - id: task_easy
+    name: Easy Task
+    difficulty: easy
+    grader: server.graders:EasyGrader
+  - id: task_medium
+    name: Medium Task
     difficulty: medium
-    description: Resolve customer tier and SKU discounts with temporal joins, then aggregate net revenue by region and tier.
-    grader: server.graders:Task0Grader
-  - id: task_1
-    name: Customer CDC Merge
-    difficulty: medium
-    description: Apply retry-deduplicated CDC events with partial updates, deletes, and re-inserts to build the final customer master.
-    grader: server.graders:Task1Grader
-  - id: task_2
-    name: Payment Reconciliation
-    difficulty: medium
-    description: Reconcile captured payments against refunds and lost chargebacks across currencies using event-date FX conversion.
-    grader: server.graders:Task2Grader
-  - id: task_3
-    name: Session Funnel With Identity Stitching
+    grader: server.graders:MediumGrader
+  - id: task_hard
+    name: Hard Task
     difficulty: hard
-    description: Resolve temporal identity mappings, sessionize user behavior, and compute conversion-funnel revenue.
-    grader: server.graders:Task3Grader
-  - id: task_4
-    name: BOM Fulfillment Simulation
-    difficulty: hard
-    description: Simulate warehouse-level component allocation with receipts, priorities, and shared BOM contention.
-    grader: server.graders:Task4Grader
+    grader: server.graders:HardGrader
