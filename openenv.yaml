@@ -1,9 +1,5 @@
 spec_version: 1
-name: datapipe-sandbox-v1
-type: space
-runtime: fastapi
 app: server.app:app
-port: 7860
 tasks:
   - id: task_0
     name: Temporal Discount Attribution
