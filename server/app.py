@@ -10,6 +10,32 @@ import uvicorn
 
 app = FastAPI(title="DataPipe-Sandbox OpenEnv", version="1.0.0")
 
+VALIDATOR_TASKS = [
+    {
+        "id": "task_easy",
+        "name": "Easy Task",
+        "difficulty": "easy",
+        "grader_path": "server.graders:EasyGrader",
+        "task_index": 0,
+    },
+    {
+        "id": "task_medium",
+        "name": "Medium Task",
+        "difficulty": "medium",
+        "grader_path": "server.graders:MediumGrader",
+        "task_index": 1,
+    },
+    {
+        "id": "task_hard",
+        "name": "Hard Task",
+        "difficulty": "hard",
+        "grader_path": "server.graders:HardGrader",
+        "task_index": 2,
+    },
+]
+
+VALIDATOR_TASK_INDEX = {task["id"]: task["task_index"] for task in VALIDATOR_TASKS}
+
 # Global environment instance
 # In a production environment with multiple users, you would use 
 # a dictionary mapping session_ids to Env instances.
@@ -30,8 +56,8 @@ async def metadata():
         "name": "datapipe-sandbox-v1",
         "description": "Data pipeline execution and grading environment.",
         "version": "1.0.0",
-        "task_count": len(TASKS),
-        "tasks": [serialize_task(task) for task in TASKS],
+        "task_count": len(VALIDATOR_TASKS),
+        "tasks": [serialize_validator_task(task) for task in VALIDATOR_TASKS],
     }
 
 
@@ -77,7 +103,31 @@ def serialize_task(task: dict[str, Any]) -> dict[str, Any]:
         "grader_path": f"server.graders:Task{task_index}Grader",
     }
 
+
+def serialize_validator_task(task: dict[str, Any]) -> dict[str, Any]:
+    task_index = int(task["task_index"])
+    backing_task = TASKS[task_index]
+    task_id = task["id"]
+    return {
+        "id": task_id,
+        "task_id": task_id,
+        "index": task_index,
+        "name": task["name"],
+        "description": backing_task["description"],
+        "difficulty": task["difficulty"],
+        "entrypoint": backing_task["entrypoint"],
+        "output_file": backing_task["output_file"],
+        "input_files": backing_task["input_files"],
+        "max_steps": backing_task.get("max_steps", 20),
+        "success_threshold": backing_task.get("success_threshold", 0.7),
+        "has_grader": task_id in GRADERS,
+        "grader": task_id in GRADERS,
+        "grader_path": task["grader_path"],
+    }
+
 def parse_task_id(value: Any) -> int:
+    if isinstance(value, str) and value in VALIDATOR_TASK_INDEX:
+        return VALIDATOR_TASK_INDEX[value]
     if isinstance(value, str) and value.startswith("task_"):
         value = value.removeprefix("task_")
     try:
@@ -91,11 +141,15 @@ def parse_task_id(value: Any) -> int:
 
 @app.get("/tasks")
 async def list_tasks():
-    return {"tasks": [serialize_task(task) for task in TASKS]}
+    return {"tasks": [serialize_validator_task(task) for task in VALIDATOR_TASKS]}
 
 
 @app.get("/tasks/{task_id}")
 async def get_task(task_id: str):
+    if task_id in VALIDATOR_TASK_INDEX:
+        for task in VALIDATOR_TASKS:
+            if task["id"] == task_id:
+                return serialize_validator_task(task)
     return serialize_task(TASKS[parse_task_id(task_id)])
 
 
@@ -108,8 +162,8 @@ async def validate():
         "step_endpoint": True,
         "state_endpoint": True,
         "tasks_endpoint": True,
-        "min_3_tasks": len(TASKS) >= 3,
-        "all_tasks_have_graders": all(f"task_{parse_task_id(task['id'])}" in GRADERS for task in TASKS),
+        "min_3_tasks": len(VALIDATOR_TASKS) >= 3,
+        "all_tasks_have_graders": all(task["id"] in GRADERS for task in VALIDATOR_TASKS),
         "reward_shaped": True,
     }
     return {
@@ -117,15 +171,17 @@ async def validate():
         "checks": checks,
         "env_name": "datapipe-sandbox-v1",
         "version": "1.0.0",
-        "task_count": len(TASKS),
-        "tasks_with_graders": sum(1 for task in TASKS if f"task_{parse_task_id(task['id'])}" in GRADERS),
+        "task_count": len(VALIDATOR_TASKS),
+        "tasks_with_graders": sum(1 for task in VALIDATOR_TASKS if task["id"] in GRADERS),
     }
 
 
 @app.get("/grade/{task_id}")
 async def grade_current(task_id: str):
+    grader = GRADERS.get(task_id)
     task_index = parse_task_id(task_id)
-    grader = GRADERS.get(f"task_{task_index}")
+    if not grader:
+        grader = GRADERS.get(f"task_{task_index}")
     if not grader:
         raise HTTPException(status_code=404, detail=f"No grader for task: {task_id}")
     if not env.workspace:
