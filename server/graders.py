@@ -3,47 +3,69 @@ from typing import Any
 from tasks import TASKS
 
 
-def _normalize(result: dict[str, Any]) -> dict[str, Any]:
-    return {
-        "score": max(0.0, min(1.0, float(result.get("score", 0.0)))),
-        "metrics": result.get("metrics", {}),
-        "feedback": result.get("feedback", ""),
-    }
+def _clamp_score(score: Any) -> float:
+    try:
+        value = float(score)
+    except (TypeError, ValueError):
+        value = 0.01
+    return max(0.01, min(0.99, value))
 
 
-class Task0Grader:
-    def __call__(self, workspace_path: str | None = None, **kwargs: Any) -> dict[str, Any]:
+class _BaseTaskGrader:
+    task_index: int = 0
+
+    def _workspace_path(self, env: Any) -> str | None:
+        if isinstance(env, str):
+            return env
+        if env is None:
+            return None
+        return getattr(env, "workspace", None)
+
+    def grade(self, env: Any, *args: Any, **kwargs: Any) -> float:
+        workspace_path = self._workspace_path(env)
         if not workspace_path:
-            return {"score": 0.0, "metrics": {}, "feedback": "No workspace_path provided."}
-        return _normalize(TASKS[0]["grader"](workspace_path, kwargs.get("logs"), kwargs.get("last_exec_time")))
+            return 0.01
+        result = TASKS[self.task_index]["grader"](
+            workspace_path,
+            kwargs.get("logs"),
+            kwargs.get("last_exec_time"),
+        )
+        return _clamp_score(result.get("score", 0.01))
 
-
-class Task1Grader:
-    def __call__(self, workspace_path: str | None = None, **kwargs: Any) -> dict[str, Any]:
+    def __call__(self, env: Any = None, *args: Any, **kwargs: Any) -> dict[str, Any]:
+        workspace_path = self._workspace_path(env)
         if not workspace_path:
-            return {"score": 0.0, "metrics": {}, "feedback": "No workspace_path provided."}
-        return _normalize(TASKS[1]["grader"](workspace_path, kwargs.get("logs"), kwargs.get("last_exec_time")))
+            return {"score": 0.01, "metrics": {}, "feedback": "No workspace_path provided."}
+        result = TASKS[self.task_index]["grader"](
+            workspace_path,
+            kwargs.get("logs"),
+            kwargs.get("last_exec_time"),
+        )
+        return {
+            "score": _clamp_score(result.get("score", 0.01)),
+            "metrics": result.get("metrics", {}),
+            "feedback": result.get("feedback", ""),
+        }
 
 
-class Task2Grader:
-    def __call__(self, workspace_path: str | None = None, **kwargs: Any) -> dict[str, Any]:
-        if not workspace_path:
-            return {"score": 0.0, "metrics": {}, "feedback": "No workspace_path provided."}
-        return _normalize(TASKS[2]["grader"](workspace_path, kwargs.get("logs"), kwargs.get("last_exec_time")))
+class Task0Grader(_BaseTaskGrader):
+    task_index = 0
 
 
-class Task3Grader:
-    def __call__(self, workspace_path: str | None = None, **kwargs: Any) -> dict[str, Any]:
-        if not workspace_path:
-            return {"score": 0.0, "metrics": {}, "feedback": "No workspace_path provided."}
-        return _normalize(TASKS[3]["grader"](workspace_path, kwargs.get("logs"), kwargs.get("last_exec_time")))
+class Task1Grader(_BaseTaskGrader):
+    task_index = 1
 
 
-class Task4Grader:
-    def __call__(self, workspace_path: str | None = None, **kwargs: Any) -> dict[str, Any]:
-        if not workspace_path:
-            return {"score": 0.0, "metrics": {}, "feedback": "No workspace_path provided."}
-        return _normalize(TASKS[4]["grader"](workspace_path, kwargs.get("logs"), kwargs.get("last_exec_time")))
+class Task2Grader(_BaseTaskGrader):
+    task_index = 2
+
+
+class Task3Grader(_BaseTaskGrader):
+    task_index = 3
+
+
+class Task4Grader(_BaseTaskGrader):
+    task_index = 4
 
 
 class EasyGrader(Task0Grader):
