@@ -1128,3 +1128,29 @@ for task in TASKS:
         logs,
         last_exec_time,
     )
+
+
+# Validator-facing 3-task registry matching openenv.yaml.
+TASK_EMAILS = {
+    "task_easy": TASKS[0]["files"],
+    "task_medium": TASKS[1]["files"],
+    "task_hard": TASKS[2]["files"],
+}
+
+TASK_OBJECTIVES = {
+    "task_easy": TASKS[0]["description"],
+    "task_medium": TASKS[1]["description"],
+    "task_hard": TASKS[2]["description"],
+}
+
+TASK_MAX_STEPS = {
+    "task_easy": 20,
+    "task_medium": 20,
+    "task_hard": 20,
+}
+
+TASK_ID_TO_INDEX = {
+    "task_easy": 0,
+    "task_medium": 1,
+    "task_hard": 2,
+}
